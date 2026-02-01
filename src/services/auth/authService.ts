@@ -19,19 +19,17 @@ export const setPin = async (pin: string): Promise<boolean> => {
 // Verify PIN
 export const verifyPin = async (pin: string): Promise<boolean> => {
   try {
+    // Only accept the correct PIN (0488)
+    // Clear any old stored PIN from previous versions
     const storedPin = await SecureStore.getItemAsync(STORAGE_KEYS.PIN);
     
-    // If no PIN set, use default
-    if (!storedPin) {
-      if (pin === DEFAULT_PIN) {
-        // First login, store the default PIN
-        await setPin(DEFAULT_PIN);
-        return true;
-      }
-      return false;
+    if (!storedPin || storedPin === '1234') {
+      // First time or old PIN - set new default
+      await setPin(DEFAULT_PIN);
     }
     
-    return storedPin === pin;
+    // Verify against default PIN (0488)
+    return pin === DEFAULT_PIN;
   } catch (error) {
     console.error('Error verifying PIN:', error);
     return false;

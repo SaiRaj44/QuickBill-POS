@@ -153,11 +153,33 @@ export const generateReceipt = (bill: Bill, shopName: string = DEFAULT_SETTINGS.
 // Generate plain text receipt (for preview/fallback)
 export const generatePlainReceipt = (bill: Bill, shopName: string = DEFAULT_SETTINGS.shopName): string => {
   const lines: string[] = [];
+  const center = (text: string) => text.padStart((LINE_WIDTH + text.length) / 2);
   
   // Header
   lines.push('');
-  lines.push(shopName.padStart((LINE_WIDTH + shopName.length) / 2));
+  lines.push(center(shopName));
   lines.push(line('═'));
+  
+  // Bill info at TOP
+  lines.push(center(`Bill No: ${bill.billNumber}`));
+  
+  const date = new Date(bill.createdAt);
+  const dateStr = date.toLocaleDateString('en-IN', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+  const timeStr = date.toLocaleTimeString('en-IN', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  lines.push(center(`${dateStr}  ${timeStr}`));
+  
+  // Order type
+  lines.push(center(bill.orderType === 'parcel' ? '[ PARCEL ]' : '[ DINE-IN ]'));
+  
+  lines.push(line('-'));
   
   // Items
   bill.items.forEach(item => {
@@ -179,20 +201,8 @@ export const generatePlainReceipt = (bill: Bill, shopName: string = DEFAULT_SETT
   const totalLine = `TOTAL: ${formatPrice(bill.total)}`;
   lines.push(padLeft(totalLine, LINE_WIDTH));
   
-  lines.push(line('-'));
-  
-  // Bill info
-  lines.push(`Bill No: ${bill.billNumber}`.padStart((LINE_WIDTH + 20) / 2));
-  
-  const date = new Date(bill.createdAt);
-  const dateStr = date.toLocaleDateString('en-IN');
-  const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-  lines.push(`${dateStr}  ${timeStr}`.padStart((LINE_WIDTH + 20) / 2));
-  
-  lines.push((bill.orderType === 'parcel' ? '[ PARCEL ]' : '[ DINE-IN ]').padStart((LINE_WIDTH + 10) / 2));
-  
   lines.push(line('═'));
-  lines.push('Thank You! Visit Again'.padStart((LINE_WIDTH + 22) / 2));
+  lines.push(center('Thank You! Visit Again'));
   lines.push('');
   
   return lines.join('\n');

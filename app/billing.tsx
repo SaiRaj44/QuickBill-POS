@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,10 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
-  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Category, MenuItem, Order, OrderItemAddOn, PortionType } from '../src/types';
-import { getItemsByCategory, MENU_ITEMS } from '../src/config/menu';
+import { Category, MenuItem, Order, OrderItemAddOn, PortionType, Bill } from '../src/types';
+import { getItemsByCategory } from '../src/config/menu';
 import { APP_NAME } from '../src/config/constants';
 import {
   createEmptyOrder,
@@ -21,7 +20,6 @@ import {
   updateItemQuantity,
   removeItemFromOrder,
   setOrderType,
-  clearOrder,
   isOrderEmpty,
 } from '../src/services/order/orderBuilder';
 import { saveBill } from '../src/services/database/queries';
@@ -35,6 +33,8 @@ import OrderSummary from '../src/components/billing/OrderSummary';
 import Button from '../src/components/common/Button';
 import LockScreen from '../src/components/auth/LockScreen';
 import PrinterSettings from '../src/components/billing/PrinterSettings';
+import OrderReviewModal from '../src/components/billing/OrderReviewModal';
+import ReceiptPreviewModal from '../src/components/billing/ReceiptPreviewModal';
 import { useInactivity } from '../src/hooks/useInactivity';
 import { usePrinter } from '../src/hooks/usePrinter';
 
@@ -49,6 +49,17 @@ export default function BillingScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLockScreen, setShowLockScreen] = useState(false);
   const [showPrinterSettings, setShowPrinterSettings] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+  const [lastBill, setLastBill] = useState<Bill | null>(null);
+
+  // Ref to track the latest order state (fixes stale closure issue)
+  const orderRef = useRef<Order>(order);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    orderRef.current = order;
+  }, [order]);
 
   // Printer hook
   const {
@@ -61,19 +72,17 @@ export default function BillingScreen() {
     forgetPrinter,
   } = usePrinter();
 
-  // Inactivity lock
+  // Inactivity lock - also logs out on idle
   const { resetTimer } = useInactivity({
-    onLock: () => setShowLockScreen(true),
+    onLock: async () => {
+      await logout();
+      setShowLockScreen(true);
+    },
     enabled: true,
   });
 
   const handleUnlock = useCallback(() => {
     setShowLockScreen(false);
-    resetTimer();
-  }, [resetTimer]);
-
-  // Reset inactivity timer on any interaction
-  const handleInteraction = useCallback(() => {
     resetTimer();
   }, [resetTimer]);
 
@@ -85,14 +94,13 @@ export default function BillingScreen() {
 
   // Handle item selection
   const handleItemPress = useCallback((item: MenuItem) => {
+    resetTimer();
     if (item.hasPortions || item.hasAddOns) {
-      // Open modal for biryani items
       setModalItem(item);
     } else {
-      // Directly add simple items
       setOrder(prev => addItemToOrder(prev, item));
     }
-  }, []);
+  }, [resetTimer]);
 
   // Handle add-on modal confirm
   const handleAddOnConfirm = useCallback(
@@ -118,39 +126,54 @@ export default function BillingScreen() {
     setOrder(prev => setOrderType(prev, type));
   }, []);
 
-  // Handle generate bill
-  const handleGenerateBill = useCallback(async () => {
-    if (isOrderEmpty(order)) {
+  // Actual bill generation
+  const generateBillNow = useCallback(async () => {
+    const currentOrder = orderRef.current;
+    
+    if (isOrderEmpty(currentOrder)) {
       Alert.alert('Empty Order', 'Please add items to the order first.');
       return;
     }
 
     setIsSubmitting(true);
+    setShowReviewModal(false);
 
     try {
-      // Save bill to database
       const savedBill = await saveBill({
-        orderType: order.orderType,
-        items: order.items,
-        subtotal: order.subtotal,
-        total: order.total,
+        orderType: currentOrder.orderType,
+        items: currentOrder.items,
+        subtotal: currentOrder.subtotal,
+        total: currentOrder.total,
       });
 
-      // Print receipt
       await printBill(savedBill);
+      
+      // Store bill for preview
+      setLastBill(savedBill);
+      setShowReceiptPreview(true);
 
       // Reset order for next customer
       setOrder(createEmptyOrder());
-
-      // Show brief success (optional, can be removed for speed)
-      // Alert.alert('Success', `Bill ${savedBill.billNumber} generated!`);
     } catch (error) {
       console.error('Error generating bill:', error);
       Alert.alert('Error', 'Failed to generate bill. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [order]);
+  }, []);
+
+  // Handle generate bill button - always show review first
+  const handleGenerateBill = useCallback(() => {
+    const currentOrder = orderRef.current;
+    
+    if (isOrderEmpty(currentOrder)) {
+      Alert.alert('Empty Order', 'Please add items to the order first.');
+      return;
+    }
+
+    // Always show review modal before generating bill
+    setShowReviewModal(true);
+  }, []);
 
   // Handle logout
   const handleLogout = useCallback(async () => {
@@ -188,7 +211,7 @@ export default function BillingScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.logo}>🍛</Text>
+          <Text style={styles.logo}>🧾</Text>
           <Text style={styles.title}>{APP_NAME}</Text>
         </View>
         <View style={styles.headerRight}>
@@ -260,6 +283,23 @@ export default function BillingScreen() {
         onConfirm={handleAddOnConfirm}
       />
 
+      {/* Order Review Modal */}
+      <OrderReviewModal
+        visible={showReviewModal}
+        order={order}
+        onConfirm={generateBillNow}
+        onEdit={() => setShowReviewModal(false)}
+        onClose={() => setShowReviewModal(false)}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Receipt Preview Modal */}
+      <ReceiptPreviewModal
+        visible={showReceiptPreview}
+        bill={lastBill}
+        onClose={() => setShowReceiptPreview(false)}
+      />
+
       {/* Lock Screen */}
       <LockScreen
         visible={showLockScreen}
@@ -312,7 +352,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFD93D',
+    color: '#FF8C42',
   },
   headerButton: {
     width: 44,

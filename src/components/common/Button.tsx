@@ -54,7 +54,7 @@ const Button: React.FC<ButtonProps> = memo(({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#1a1a2e' : '#FFD93D'} />
+        <ActivityIndicator color={variant === 'primary' ? '#FFFFFF' : '#FF8C42'} />
       ) : (
         <>
           {icon}
@@ -74,12 +74,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   button_primary: {
-    backgroundColor: '#FFD93D',
+    backgroundColor: '#FF8C42',
   },
   button_secondary: {
     backgroundColor: '#2a2a4a',
     borderWidth: 1,
-    borderColor: '#FFD93D',
+    borderColor: '#FF8C42',
   },
   button_danger: {
     backgroundColor: '#FF6B6B',
@@ -109,16 +109,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   text_primary: {
-    color: '#1a1a2e',
+    color: '#FFFFFF',
   },
   text_secondary: {
-    color: '#FFD93D',
+    color: '#FF8C42',
   },
   text_danger: {
     color: '#FFFFFF',
   },
   text_ghost: {
-    color: '#FFD93D',
+    color: '#FF8C42',
   },
   text_small: {
     fontSize: 14,

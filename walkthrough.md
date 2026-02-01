@@ -381,3 +381,7 @@ Bill No: BP-20260126-001
 | Dark mode UI | ✅ |
 | Tablet layout support | ✅ |
 | EAS build config | ✅ |
+
+echo "sdk.dir=/home/gsr/Android/Sdk" > android/local.properties && cd android && ./gradlew assembleRelease
+
+

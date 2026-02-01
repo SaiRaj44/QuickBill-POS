@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Biryani Point",
-    "slug": "biryani-point-billing",
+    "name": "AnnaBill",
+    "slug": "annabill-pos",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
-    "scheme": "biryanipoint",
+    "scheme": "annabill",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a1a2e"
     },
@@ -23,7 +23,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a1a2e"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -31,7 +39,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "react-native-ble-plx"
     ],
     "experiments": {
       "typedRoutes": true

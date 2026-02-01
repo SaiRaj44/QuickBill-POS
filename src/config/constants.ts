@@ -1,13 +1,13 @@
 // App Constants
 
-export const APP_NAME = 'Biryani Point';
+export const APP_NAME = 'AnnaBill';
 
 export const PIN_LENGTH = 4;
-export const DEFAULT_PIN = '1234'; // Default PIN for first setup
+export const DEFAULT_PIN = '0488'; // Default PIN for first setup
 
 export const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
-export const BILL_PREFIX = 'BP';
+export const BILL_PREFIX = 'AB';
 
 export const CURRENCY_SYMBOL = '₹';
 
@@ -21,7 +21,7 @@ export const STORAGE_KEYS = {
 export const DB_NAME = 'billing_app.db';
 
 export const DEFAULT_SETTINGS = {
-  shopName: 'Biryani Point',
+  shopName: 'AnnaBill',
   shopAddress: '',
   shopPhone: '',
   autoPrint: true,

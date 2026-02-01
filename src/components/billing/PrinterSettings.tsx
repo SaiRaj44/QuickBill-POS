@@ -71,7 +71,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = memo(({
         )}
       </View>
       {connecting === item.id ? (
-        <ActivityIndicator color="#FFD93D" />
+        <ActivityIndicator color="#FF8C42" />
       ) : (
         <Text style={styles.connectText}>Connect</Text>
       )}
@@ -150,7 +150,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = memo(({
 
               {isScanning ? (
                 <View style={styles.scanningContainer}>
-                  <ActivityIndicator size="large" color="#FFD93D" />
+                  <ActivityIndicator size="large" color="#FF8C42" />
                   <Text style={styles.scanningText}>
                     Searching for nearby printers...
                   </Text>
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   printerName: {
     fontSize: 14,
-    color: '#FFD93D',
+    color: '#FF8C42',
     marginTop: 4,
   },
   errorText: {
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   connectText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFD93D',
+    color: '#FF8C42',
   },
   emptyState: {
     alignItems: 'center',
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   instructionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFD93D',
+    color: '#FF8C42',
     marginBottom: 8,
   },
   instructionsText: {
